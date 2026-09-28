@@ -1,21 +1,18 @@
-#pragma once
-#include <memory>
+#ifndef SHARED_TYPES_H
+#define SHARED_TYPES_H
+
 #include <functional>
 
-// Спільні вхідні дані для варіанта 1
-struct InputData {
-    double a; // початок інтервалу
-    double b; // кінець інтервалу
-    int n;    // кількість розбиттів
-    std::function<double(double)> func; // функція f(x), яку інтегруємо
+// Структура для зберігання результатів обчислень і метрик порівняння
+struct IntegrationResult {
+    double value;           // Значення інтеграла
+    int function_calls;     // Кількість обчислень функції
+    double execution_time_ms; // Час виконання в мілісекундах
 };
 
-// Структура для результату
-struct Result {
-    double integral_value; 
-    int function_calls;  
-};
+// Тестова функція для інтегрування, наприклад f(x) = x * x
+inline double target_function(double x) {
+    return x * x; 
+}
 
-// Оголошення ваших функцій
-std::unique_ptr<Result> calculateA(std::shared_ptr<const InputData> data);
-std::unique_ptr<Result> calculateB(std::shared_ptr<const InputData> data);
+#endif // SHARED_TYPES_H

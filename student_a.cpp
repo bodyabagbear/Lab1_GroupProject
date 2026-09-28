@@ -1,29 +1,36 @@
 #include "shared_types.h"
+#include <iostream>
+#include <chrono>
+#include <stdexcept>
 
-// Функція Студента А отримує дані через shared_ptr
-std::unique_ptr<Result> calculateA(std::shared_ptr<const InputData> data) {
-    int n = data->n;
-    // Для методу Сімпсона кількість розбиттів має бути парною[cite: 1]
+// Функція для обчислення інтеграла методом Симпсона (Студент А)
+IntegrationResult calculate_simpson(double a, double b, int n) {
     if (n % 2 != 0) {
-        n++; 
+        throw std::invalid_argument("Error: For Simpson's method, 'n' must be an even number!");
     }
 
-    double h = (data->b - data->a) / n;
-    double sum = data->func(data->a) + data->func(data->b);
-    int calls = 2; 
+    auto start_time = std::chrono::high_resolution_clock::now();
 
-    for (int i = 1; i < n; i++) {
-        double x = data->a + i * h;
-        if (i % 2 == 0) {
-            sum += 2 * data->func(x);
-        } else {
-            sum += 4 * data->func(x);
-        }
-        calls++;
+    double h = (b - a) / n;
+    double sum = target_function(a) + target_function(b);
+    int func_calls = 2; // Викликали для а та b
+
+    // Непарні індекси (коефіцієнт 4)
+    for (int i = 1; i < n; i += 2) {
+        sum += 4.0 * target_function(a + i * h);
+        func_calls++;
     }
-    
+
+    // Парні індекси (коефіцієнт 2)
+    for (int i = 2; i < n; i += 2) {
+        sum += 2.0 * target_function(a + i * h);
+        func_calls++;
+    }
+
     double result = (h / 3.0) * sum;
 
-    // Повертаємо результат через unique_ptr[cite: 1]
-    return std::make_unique<Result>(Result{result, calls});
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> elapsed = end_time - start_time;
+
+    return {result, func_calls, elapsed.count()};
 }
