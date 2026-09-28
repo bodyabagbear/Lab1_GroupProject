@@ -1,29 +1,72 @@
-#include <iostream>
 #include "shared_types.h"
 
-// Оголошення функції студента А (метод Симпсона)
-IntegrationResult calculate_simpson(double a, double b, int n);
+#include <chrono>
+#include <cmath>
+#include <exception>
+#include <iomanip>
+#include <iostream>
+#include <vector>
+
+double my_function(double x) {
+    return x * x;
+}
 
 int main() {
-    std::cout << "=== LAB 1: NUMERICAL INTEGRATION ===" << std::endl;
+    using Clock = std::chrono::steady_clock;
 
-    double a = 0.0; // Нижня межа інтегрування
-    double b = 1.0; // Верхня межа інтегрування
-    int n = 100;    // Кількість розбиттів (має бути парним для методу Симпсона)
+    const std::vector<int> subdivisions{10, 100, 1000};
+    const double exact_value = 1.0 / 3.0;
 
-    std::cout << "Interval: [" << a << ", " << b << "], n = " << n << std::endl;
+    std::cout << std::setprecision(12);
+    std::cout << "Variant 1: f(x) = x^2, interval [0, 1]\n";
+    std::cout << "Exact integral: " << exact_value << '\n';
 
     try {
-        // Виклик методу Симпсона (Студент А)
-        IntegrationResult simpson_res = calculate_simpson(a, b, n);
+        for (int n : subdivisions) {
+            // Обидва методи отримують один спільний об'єкт.
+            auto data = std::make_shared<const InputData>(
+                InputData{0.0, 1.0, n, my_function});
 
-        std::cout << "\n--- Student A (Simpson's Method) ---" << std::endl;
-        std::cout << "Integral Value: " << simpson_res.value << std::endl;
-        std::cout << "Function Calls: " << simpson_res.function_calls << std::endl;
-        std::cout << "Execution Time: " << simpson_res.execution_time_ms << " ms" << std::endl;
-    } 
-    catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
+            const auto startA = Clock::now();
+            auto resultA = calculateA(data);
+            const auto endA = Clock::now();
+
+            const auto startB = Clock::now();
+            auto resultB = calculateB(data);
+            const auto endB = Clock::now();
+
+            // Структуровані прив'язки.
+            auto [valueA, callsA] = *resultA;
+            auto [valueB, callsB] = *resultB;
+
+            const double timeA =
+                std::chrono::duration<double, std::milli>(
+                    endA - startA).count();
+
+            const double timeB =
+                std::chrono::duration<double, std::milli>(
+                    endB - startB).count();
+
+            std::cout << "\nn = " << n << '\n';
+
+            std::cout << "Simpson:\n"
+                      << "  Integral: " << valueA << '\n'
+                      << "  Absolute error: "
+                      << std::abs(valueA - exact_value) << '\n'
+                      << "  Function calls: " << callsA << '\n'
+                      << "  Time (ms): " << timeA << '\n';
+
+            std::cout << "Trapezoidal:\n"
+                      << "  Integral: " << valueB << '\n'
+                      << "  Absolute error: "
+                      << std::abs(valueB - exact_value) << '\n'
+                      << "  Function calls: " << callsB << '\n'
+                      << "  Time (ms): " << timeB << '\n';
+        }
+    }
+    catch (const std::exception& error) {
+        std::cerr << error.what() << '\n';
+        return 1;
     }
 
     return 0;
