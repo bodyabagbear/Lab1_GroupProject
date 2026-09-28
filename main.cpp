@@ -11,6 +11,11 @@ int main() {
     
     // Створюємо єдиний екземпляр вхідних даних для обох алгоритмів[cite: 1]
     auto data = std::make_shared<const InputData>(InputData{0.0, 2.0, 100, my_function});
+    auto resultB = calculateB(data);
+    auto [valueB, callsB] = *resultB;
+
+    std::cout << "Trapezoidal method: " << valueB << '\n';
+    std::cout << "Function calls: " << callsB << '\n';
 
     return 0;
 }
